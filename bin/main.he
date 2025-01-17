@@ -1,6 +1,6 @@
-let a = 9;
-let b;
-b >= 10;
+let a:int = 9_500_000;  // improves readability
+let b:float;
+b = 10.8;
 a++;
 if (a >= b){
     a = (a * 10) + !b;

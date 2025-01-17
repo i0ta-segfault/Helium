@@ -15,7 +15,7 @@
     } StatementType;
 
     typedef enum {
-        EXPR_IDENTIFIER, EXPR_INTEGER, EXPR_PREFIX, EXPR_INFIX, EXPR_POSTFIX
+        EXPR_IDENTIFIER, EXPR_INTEGER, EXPR_FLOAT, EXPR_PREFIX, EXPR_INFIX, EXPR_POSTFIX
     } ExpressionType;
 
     typedef struct Node {
@@ -61,9 +61,15 @@
         Token integer_token;
     } IntegerLiteral;
 
+    typedef struct FloatingLiteral {
+        Expression expr;
+        Token float_token;
+    } FloatingLiteral;
+
     typedef struct LetStatement {
         Statement stmt;
         Token token;  // will hold the let keyword
+        Token data_type; // will hold the data type of the variable being declared
         IdentifierExpression identifier;
         struct Expression* value;  // can be null if variable is just declared and not initialized
     } LetStatement;

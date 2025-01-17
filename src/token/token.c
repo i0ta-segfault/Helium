@@ -1,4 +1,4 @@
-#include "lexer.h"
+#include "token.h"
 
 char* getKeywordEnumName(Keywords keyword) {
     if (keyword >= 0 && keyword < Keywords_Count) {
@@ -7,11 +7,28 @@ char* getKeywordEnumName(Keywords keyword) {
     return NULL;
 }
 
+char* getDataTypeEnumName(DataType datatype) {
+    if (datatype >= 0 && datatype < DataTypeCount) {
+        return datatypesArray[datatype];
+    }
+    return NULL;
+}
+
+int getDataTypeFromEnum(char* literal){
+    for (int i = 0; i < DataTypeCount; i++) {
+        if (strcmp(literal, getDataTypeEnumName(i)) == 0){
+            return i;
+        }
+    }
+    return -1;
+}
+
 char* getTokenTypeName(Token token){
     switch(token.type){
         case IDENTIFIER : return "IDENTIFIER"; 
         case KEYWORDS : return "KEYWORDS"; 
-        case INTEGER : return "INTEGER";
+        case INTEGER_LITERAL : return "INTEGER_LITERAL";
+        case FLOAT_LITERAL : return "FLOAT_LITERAL";
         case ASSIGNMENT_OPERATOR : return "ASSIGNMENT_OPERATOR"; 
         case PLUS_OPERATOR : return "PLUS_OPERATOR"; 
         case MINUS_OPERATOR : return "MINUS_OPERATOR"; 
@@ -35,16 +52,14 @@ char* getTokenTypeName(Token token){
         case RIGHT_CURLY_BRACES : return "RIGHT_CURLY_BRACES"; 
         case LEFT_SQUARE_BRACKET : return "LEFT_SQUARE_BRACKET"; 
         case RIGHT_SQUARE_BRACKET : return "RIGHT_SQUARE_BRACKET";
+        case COLON : return "COLON";
         case ILLEGAL : return "ILLEGAL";
+        case Data_Type : return "DATA_TYPE";
         case ENDOFFILE : return "ENDOFFILE"; 
     }
 }
 
 int isKeyword(char* string) {
-    if (string == NULL) {
-        return 0; // Null safety check
-    }
-
     for (int i = 0; i < Keywords_Count; i++) {
         if (strcmp(string, getKeywordEnumName(i)) == 0) {
             return 1;
@@ -53,6 +68,11 @@ int isKeyword(char* string) {
     return 0;
 }
 
-int isDigit(char character){
-    return ((character >= '0' && character <= '9'));
+int isDataType(char* string) {
+    for (int i = 0; i < DataTypeCount; i++) {
+        if (strcmp(string, getDataTypeEnumName(i)) == 0){
+            return 1;
+        }
+    }
+    return 0;
 }

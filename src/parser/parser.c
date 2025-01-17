@@ -76,8 +76,10 @@ Expression* parse_prefix_expression(Parser* parser) {
     switch (currentToken.type) {
         case IDENTIFIER:
             return parse_identifier_expression(parser);
-        case INTEGER:
+        case INTEGER_LITERAL:
             return parse_integer_literal_expression(parser);
+        case FLOAT_LITERAL:
+            return parse_float_literal_expression(parser);
         case LEFT_PARENTHESIS:  // sub expressions
             return parse_grouped_expression(parser);
         case MINUS_OPERATOR:
@@ -121,6 +123,16 @@ Expression* parse_integer_literal_expression(Parser* parser) {
     integerLiteral->expr.expr_type = EXPR_INTEGER;
     integerLiteral->integer_token = integerToken;
     return (Expression*)integerLiteral;
+}
+
+Expression* parse_float_literal_expression(Parser* parser) {
+    Token floatToken = parser->currentToken;
+    advance_token_Parser(parser);
+    FloatingLiteral* floatingLiteral = (FloatingLiteral*)malloc(sizeof(FloatingLiteral));
+    floatingLiteral->expr.node.type = NODE_EXPR;
+    floatingLiteral->expr.expr_type = EXPR_FLOAT;
+    floatingLiteral->float_token = floatToken;
+    return (Expression*)floatingLiteral;
 }
 
 // Parses grouped expressions inside parentheses (e.g., (5 + 3))
@@ -182,8 +194,9 @@ AssignmentStatement* parse_assignment_statement(Parser* parser) {
     return assignmentStmt;
 }
 
-LetStatement* parse_let_statement(Parser* parser) {   // handle stuff like let result; let ans;
+LetStatement* parse_let_statement(Parser* parser) {   // handle stuff like let result:int = 10; let ans:bool;
     Token letToken = parser->currentToken;
+    Token data_type;
     advance_token_Parser(parser);
 
     if (parser->currentToken.type != IDENTIFIER) {
@@ -200,6 +213,26 @@ LetStatement* parse_let_statement(Parser* parser) {   // handle stuff like let r
     };
     advance_token_Parser(parser);
 
+    if(parser->currentToken.type != COLON) {
+        parser_throw_error(parser, "expected data type after identifier");
+        return NULL;
+    }
+    advance_token_Parser(parser);
+
+    if(parser->currentToken.type != Data_Type){
+        parser_throw_error(parser, "invalid data type");
+        return NULL;
+    } else {
+        int dataTypeEnum = getDataTypeFromEnum(parser->currentToken.literal);
+        if (dataTypeEnum == -1) {
+            parser_throw_error(parser, "unrecognized data type");
+            return NULL;
+        }
+        data_type.type = Data_Type;
+        data_type.literal = getDataTypeEnumName(dataTypeEnum);
+    }
+    advance_token_Parser(parser);
+
     if (parser->currentToken.type == ASSIGNMENT_OPERATOR) {
         advance_token_Parser(parser);
         Expression* value = parse_expression(parser);
@@ -211,6 +244,7 @@ LetStatement* parse_let_statement(Parser* parser) {   // handle stuff like let r
         LetStatement* letStmt = (LetStatement*)malloc(sizeof(LetStatement));
         letStmt->stmt = (Statement) { .node = { .type = NODE_STMT }, .stmt_type = STMT_LET };
         letStmt->token = letToken;
+        letStmt->data_type = data_type;
         letStmt->identifier = identifier;
         letStmt->value = value;
 
@@ -221,10 +255,11 @@ LetStatement* parse_let_statement(Parser* parser) {   // handle stuff like let r
         advance_token_Parser(parser);
         return letStmt;
     } 
-    else {   // handle a simple declaration (let result;)
+    else {   // handle a simple declaration (let result:int;)
         LetStatement* letStmt = (LetStatement*)malloc(sizeof(LetStatement));
         letStmt->stmt = (Statement) { .node = { .type = NODE_STMT }, .stmt_type = STMT_LET };
         letStmt->token = letToken;
+        letStmt->data_type = data_type;
         letStmt->identifier = identifier;
         letStmt->value = NULL;  // Uninitialized variable
         if(parser->currentToken.type != SEMICOLON){

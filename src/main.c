@@ -12,6 +12,11 @@ void print_expression(Expression* expr) {
             printf("Integer Literal: %s\n", intLiteral->integer_token.literal);
             break;
         }
+        case EXPR_FLOAT: {
+            FloatingLiteral* floatLiteral = (FloatingLiteral*)expr;
+            printf("Floating Literal: %s\n", floatLiteral->float_token.literal);
+            break;
+        }
         case EXPR_INFIX: {
             InfixExpression* infixExpr = (InfixExpression*)expr;
             printf("Infix Expression: (");
@@ -48,6 +53,7 @@ void print_statement(Statement* stmt) {
         case STMT_LET: {
             LetStatement* letStmt = (LetStatement*)stmt;
             printf("Let Statement: %s\n", letStmt->identifier.identifier_token.literal);
+            printf("Data type: %s\n",letStmt->data_type.literal);
             if (letStmt->value != NULL) {
                 printf("  Value: ");
                 print_expression(letStmt->value);
@@ -128,12 +134,21 @@ int main(int argc, char** argv) {
     Token* tokensArray = NULL;
     int tokensCount = 0;
     getAllTokens(sourcecode, &tokensArray, &tokensCount);
+    printf("Got tokens\n");
 
     for (int i = 0; i < 50; i++)
         printf("-");
     printf("\n");
     for (int i = 0; i < tokensCount; i++) {
-        printf("Token Type: %-30s | Literal: %-20s | Line : %d   Column : %d\n", getTokenTypeName(tokensArray[i]), tokensArray[i].literal, (tokensArray[i].line_number), (tokensArray[i].column_number));
+        if (tokensArray[i].literal == NULL) {
+            printf("Token %d has a NULL literal\n", i);
+            continue;
+        }
+        printf("Token Type: %-30s | Literal: %-20s | Line : %d   Column : %d\n", 
+            getTokenTypeName(tokensArray[i]), 
+            tokensArray[i].literal, 
+            (tokensArray[i].line_number), 
+            (tokensArray[i].column_number));
     }
     for (int i = 0; i < 50; i++)
         printf("-");

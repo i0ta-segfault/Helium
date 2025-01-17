@@ -45,6 +45,7 @@
     Expression* parse_infix_expression(Parser*, Expression*, int);
     Expression* parse_identifier_expression(Parser*);
     Expression* parse_integer_literal_expression(Parser*);
+    Expression* parse_float_literal_expression(Parser*);
     Expression* parse_grouped_expression(Parser*);
 
     ExpressionStatement* parse_expression_statement(Parser*);

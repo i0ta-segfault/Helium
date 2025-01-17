@@ -8,7 +8,14 @@ char* keywordsArray[Keywords_Count] = {
     "if",
     "else",
     "true",
-    "false"
+    "false",
+    "int",
+    "float"
+};
+
+char* datatypesArray[DataTypeCount] = {
+    "int",
+    "float"
 };
 
 void readCharacter(Lexer* lexer) {
@@ -33,6 +40,10 @@ int isLetter(char character){
     return ((character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z') || (character == '_'));
 }
 
+int isDigit(char character){
+    return ((character >= '0' && character <= '9'));
+}
+
 void skipWhiteSpace(Lexer* lexer){
     while(lexer->characterRead == ' ' || lexer->characterRead == '\n' || lexer->characterRead == '\t' || lexer->characterRead == '\r'){
         readCharacter(lexer);
@@ -48,13 +59,34 @@ char* readIdentifier(Lexer* lexer){
     return strndup(&lexer->input[start], length - 1);
 }
 
-char* readNumber(Lexer* lexer) {
+char* readNumber(Lexer* lexer) { // numbers like 29_000 are valid
     int start = lexer->previousPosition;
-    while (isDigit(lexer->characterRead)) {
+    int numberIsDecimal = 0;
+    while (isDigit(lexer->characterRead) || lexer->characterRead == '.' || lexer->characterRead == '_') {
+        if (lexer->characterRead == '.') {
+            if (numberIsDecimal) // deal with multiple decimal points, like 3.1.4
+                break;
+            numberIsDecimal = 1;
+        } 
+        else if (lexer->characterRead == '_') {
+            readCharacter(lexer);
+            continue;
+        }
         readCharacter(lexer);
     }
+
     int length = lexer->readPosition - start;
-    return strndup(&lexer->input[start], length - 1);
+    char* rawNumber = strndup(&lexer->input[start], length - 1);
+    char* cleanNumber = (char*)malloc(length);
+    int j = 0;
+    for (int i = 0; i < strlen(rawNumber); i++) {
+        if (rawNumber[i] != '_') {
+            cleanNumber[j++] = rawNumber[i];
+        }
+    }
+    cleanNumber[j] = '\0';
+    free(rawNumber);
+    return cleanNumber;
 }
 
 char peekChar(Lexer* lexer){
@@ -67,7 +99,7 @@ char peekChar(Lexer* lexer){
 }
 
 Token nextToken(Lexer* lexer){
-    Token token;
+    Token token = {0};
     skipWhiteSpace(lexer);
 
     token.line_number = lexer->currentLine;
@@ -180,6 +212,10 @@ Token nextToken(Lexer* lexer){
             token.type = SEMICOLON;
             token.literal = strdup(";");
             break;
+        case ':' :
+            token.type = COLON;
+            token.literal = strdup(":");
+            break;
         case 0 : 
             token.type = ENDOFFILE;
             token.literal = strdup("");
@@ -188,7 +224,10 @@ Token nextToken(Lexer* lexer){
             if(isLetter(lexer->characterRead)){
                 char* identifier = readIdentifier(lexer);
                 if(isKeyword(identifier)){
-                    token.type = KEYWORDS;
+                    if(isDataType(identifier))
+                        token.type = Data_Type;
+                    else
+                        token.type = KEYWORDS;
                 }
                 else{
                     token.type = IDENTIFIER;
@@ -197,16 +236,25 @@ Token nextToken(Lexer* lexer){
                 return token;
             }
             else if(isDigit(lexer->characterRead)){
-                token.type = INTEGER;
-                token.literal = readNumber(lexer);\
+                char* numberLiteral = readNumber(lexer);
+                if(strchr(numberLiteral, '.')){
+                    token.type = FLOAT_LITERAL;
+                } else {
+                    token.type = INTEGER_LITERAL;
+                }
+                token.literal = numberLiteral;
                 return token;
             }
             else{
                 token.type = ILLEGAL;
                 token.literal = (char*)malloc(2 * sizeof(char));
+                if (!token.literal) {
+                    fprintf(stderr, "Memory allocation failed for illegal token literal\n");
+                    exit(EXIT_FAILURE);
+                }
                 token.literal[0] = lexer->characterRead;
                 token.literal[1] = '\0';
-                // Error reporting
+                // error reporting
                 fprintf(stderr, "[%d : %d] Error encountered - Illegal token : %c found\n",
                         token.line_number,
                         token.column_number,
@@ -230,27 +278,26 @@ Lexer initLexer(char* sourceCode){
 }
 
 void getAllTokens(char* sourceCode, Token** tokens, int* tokenCount) {
-
-    // Initialize lexer struct
     Lexer lexer = initLexer(sourceCode);
-
-    *tokens = (Token*)malloc(sizeof(Token));
+    int capacity = INITIAL_TOKEN_CAPACITY;
+    *tokens = (Token*)malloc(capacity * sizeof(Token));
     if (!*tokens) {
         fprintf(stderr, "Failed to allocate memory for tokens\n");
         exit(EXIT_FAILURE);
     }
     *tokenCount = 0;
-
     while (1) {
         Token token = nextToken(&lexer);
-        *tokens = (Token*)realloc(*tokens, (*tokenCount + 1) * sizeof(Token));
-        if (!*tokens) {
-            fprintf(stderr, "Failed to reallocate memory for tokens\n");
-            exit(EXIT_FAILURE);
+        if (*tokenCount >= capacity) {
+            capacity *= 2;
+            *tokens = (Token*)realloc(*tokens, capacity * sizeof(Token));
+            if (!*tokens) {
+                fprintf(stderr, "Failed to reallocate memory for tokens\n");
+                exit(EXIT_FAILURE);
+            }
         }
         (*tokens)[*tokenCount] = token;
         (*tokenCount)++;
-
         if (token.type == ENDOFFILE) {
             break;
         }
