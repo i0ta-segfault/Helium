@@ -1,4 +1,4 @@
-let a:int = 9_500_000;  // improves readability
+let a:int = 9_500_000;  // improved readability
 let b:float;
 b = 10.8;
 a++;
