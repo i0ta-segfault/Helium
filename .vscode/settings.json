@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "helium.h": "c",
-        "lexer.h": "c",
-        "parser.h": "c"
-    }
-}
