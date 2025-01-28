@@ -80,6 +80,8 @@ Expression* parse_prefix_expression(Parser* parser) {
             return parse_integer_literal_expression(parser);
         case FLOAT_LITERAL:
             return parse_float_literal_expression(parser);
+        case STRING_LITERAL:
+            return parse_string_literal_expression(parser);
         case LEFT_PARENTHESIS:  // sub expressions
             return parse_grouped_expression(parser);
         case MINUS_OPERATOR:
@@ -133,6 +135,16 @@ Expression* parse_float_literal_expression(Parser* parser) {
     floatingLiteral->expr.expr_type = EXPR_FLOAT;
     floatingLiteral->float_token = floatToken;
     return (Expression*)floatingLiteral;
+}
+
+Expression* parse_string_literal_expression(Parser* parser) {
+    Token stringToken = parser->currentToken;
+    advance_token_Parser(parser);
+    StringLiteral* stringLiteral = (StringLiteral*)malloc(sizeof(StringLiteral));
+    stringLiteral->expr.node.type = NODE_EXPR;
+    stringLiteral->expr.expr_type = EXPR_STRING;
+    stringLiteral->string_token = stringToken;
+    return (Expression*)stringLiteral;
 }
 
 // Parses grouped expressions inside parentheses (e.g., (5 + 3))
@@ -388,6 +400,73 @@ IfStatement* parse_if_statement(Parser* parser) {
     return ifStmt;
 }
 
+PrintStatement* parse_print_statement(Parser* parser) {
+    PrintStatement* printStmt = (PrintStatement*)malloc(sizeof(PrintStatement));
+    printStmt->stmt.stmt_type = STMT_PRINT;
+    printStmt->expressions = NULL;
+    printStmt->exprCount = 0;
+
+    Token printToken = parser->currentToken;
+    advance_token_Parser(parser);
+
+    if (parser->currentToken.type != LEFT_PARENTHESIS) {
+        parser_throw_error(parser, "Expected '(' after 'print'.");
+        free(printStmt);
+        return NULL;
+    }
+    advance_token_Parser(parser);
+
+    while (parser->currentToken.type != RIGHT_PARENTHESIS &&
+           parser->currentToken.type != ENDOFFILE) {
+        Expression* expr = parse_expression(parser);
+        if (expr == NULL) {
+            free(printStmt->expressions);
+            free(printStmt);
+            return NULL;
+        }
+
+        // Increase expression count and reallocate memory
+        printStmt->exprCount++;
+        printStmt->expressions = realloc(printStmt->expressions, 
+                                         printStmt->exprCount * sizeof(Expression*));
+        if (!printStmt->expressions) {
+            // Check for realloc failure
+            perror("Memory reallocation failed for expressions");
+            free(printStmt);
+            return NULL;
+        }
+
+        // Add the parsed expression to the array
+        printStmt->expressions[printStmt->exprCount - 1] = expr;
+
+        if (parser->currentToken.type == COMMA) {
+            advance_token_Parser(parser);
+        } else {
+            break;  // Break if no more expressions or no ',' operator
+        }
+    }
+
+    // Ensure the closing parenthesis
+    if (parser->currentToken.type != RIGHT_PARENTHESIS) {
+        parser_throw_error(parser, "Expected ')' after 'print' arguments.");
+        free(printStmt->expressions);  // Free allocated expressions
+        free(printStmt);
+        return NULL;
+    }
+    advance_token_Parser(parser);
+
+    // Expecting a semicolon after print statement
+    if (parser->currentToken.type != SEMICOLON) {
+        parser_throw_error(parser, "Expected ';' after 'print' statement.");
+        free(printStmt->expressions);  // Free allocated expressions
+        free(printStmt);
+        return NULL;
+    }
+    advance_token_Parser(parser);
+
+    return printStmt;
+}
+
 void synchronize(Parser* parser) {
     while (parser->currentToken.type != SEMICOLON &&
            parser->currentToken.type != ENDOFFILE) {
@@ -413,6 +492,9 @@ Statement* parse_statement(Parser* parser) {
                 stmt = (Statement*)parse_return_statement(parser);
             else if (strcmp(parser->currentToken.literal, "if") == 0)
                 stmt = (Statement*)parse_if_statement(parser);
+        case BUILT_IN_FUNCTION:
+            if (strcmp(parser->currentToken.literal, "print") == 0)
+                stmt = (Statement*)parse_print_statement(parser);
             break;
         case GREATER_EQUAL:
         case GREATER_THAN:

@@ -11,11 +11,11 @@
     } NodeType;
 
     typedef enum {
-        STMT_LET, STMT_RETURN, STMT_ASSIGNMENT, STMT_EXPR, STMT_IF, STMT_ELSE
+        STMT_LET, STMT_RETURN, STMT_ASSIGNMENT, STMT_EXPR, STMT_IF, STMT_ELSE, STMT_PRINT
     } StatementType;
 
     typedef enum {
-        EXPR_IDENTIFIER, EXPR_INTEGER, EXPR_FLOAT, EXPR_PREFIX, EXPR_INFIX, EXPR_POSTFIX
+        EXPR_IDENTIFIER, EXPR_INTEGER, EXPR_FLOAT, EXPR_STRING, EXPR_PREFIX, EXPR_INFIX, EXPR_POSTFIX
     } ExpressionType;
 
     typedef struct Node {
@@ -66,6 +66,11 @@
         Token float_token;
     } FloatingLiteral;
 
+    typedef struct StringLiteral {
+        Expression expr;
+        Token string_token;
+    } StringLiteral;
+
     typedef struct LetStatement {
         Statement stmt;
         Token token;  // will hold the let keyword
@@ -103,6 +108,12 @@
         Statement** elseBlock;
         int elseBlockCount;
     } ElseStatement;
+
+    typedef struct PrintStatement {
+        Statement stmt;
+        Expression** expressions;
+        int exprCount;
+    } PrintStatement;
 
     typedef struct Program {
         Statement** stmts;

@@ -1,9 +1,2 @@
-let a:int = 9_500_000;  // improved readability
-let b:float;
-b = 10.8;
-a++;
-if (a >= b){
-    a = (a * 10) + !b;
-}
-//^
-return (!(a <= 5) + b - (!10));
+let a:int = 5;
+print(a);

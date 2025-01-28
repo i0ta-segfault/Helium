@@ -4,18 +4,21 @@
 char* keywordsArray[Keywords_Count] = {
     "let",
     "fn",
+    "print",
     "return",
     "if",
     "else",
     "true",
     "false",
     "int",
-    "float"
+    "float",
+    "string"
 };
 
 char* datatypesArray[DataTypeCount] = {
     "int",
-    "float"
+    "float",
+    "string"
 };
 
 void readCharacter(Lexer* lexer) {
@@ -216,6 +219,27 @@ Token nextToken(Lexer* lexer){
             token.type = COLON;
             token.literal = strdup(":");
             break;
+        case '"':
+            token.type = STRING_LITERAL;
+            token.literal = malloc(2);
+            token.literal[0] = lexer->characterRead;
+            token.literal[1] = '\0';
+            readCharacter(lexer); // move forward past the "
+            while (lexer->characterRead != '"' && lexer->characterRead != 0) {
+                size_t len = strlen(token.literal);
+                token.literal = realloc(token.literal, len + 2);
+                token.literal[len] = lexer->characterRead;
+                token.literal[len + 1] = '\0';
+                readCharacter(lexer);
+            }
+            if (lexer->characterRead == '"') {
+                size_t len = strlen(token.literal);
+                token.literal = realloc(token.literal, len + 2);
+                token.literal[len] = lexer->characterRead;
+                token.literal[len + 1] = '\0';
+                readCharacter(lexer); // move past the closing "
+            }
+            return token;
         case 0 : 
             token.type = ENDOFFILE;
             token.literal = strdup("");
@@ -226,6 +250,8 @@ Token nextToken(Lexer* lexer){
                 if(isKeyword(identifier)){
                     if(isDataType(identifier))
                         token.type = Data_Type;
+                    else if(isBuiltInFunction(identifier))
+                        token.type = BUILT_IN_FUNCTION;
                     else
                         token.type = KEYWORDS;
                 }

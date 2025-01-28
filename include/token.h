@@ -9,6 +9,7 @@
     char* getTokenTypeName(Token);
     int isKeyword(char*);
     int isDataType(char*);
+    int isBuiltInFunction(char*);
     int isDigit(char);
 
 #endif

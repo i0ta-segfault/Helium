@@ -17,6 +17,11 @@ void print_expression(Expression* expr) {
             printf("Floating Literal: %s\n", floatLiteral->float_token.literal);
             break;
         }
+        case EXPR_STRING: {
+            StringLiteral* stringLiteral = (StringLiteral*)expr;
+            printf("String literal: %s\n", stringLiteral->string_token.literal);
+            break;
+        }
         case EXPR_INFIX: {
             InfixExpression* infixExpr = (InfixExpression*)expr;
             printf("Infix Expression: (");
@@ -95,6 +100,16 @@ void print_statement(Statement* stmt) {
             }
             break;
         }
+        case STMT_PRINT: {
+            PrintStatement* printStmt = (PrintStatement*)stmt;
+            printf("Print Statement: (\n");
+            for (int i = 0; i < printStmt->exprCount; i++) {
+                printf("\t");
+                print_expression(printStmt->expressions[i]);
+            }
+            printf(")\n");
+            break;
+        }
         default:
             printf("Unknown Statement Type\n");
             break;
@@ -128,14 +143,11 @@ int main(int argc, char** argv) {
 
     fread(sourcecode, 1, fileSize, fptr);
     sourcecode[fileSize] = '\0';
-
     fclose(fptr);
 
     Token* tokensArray = NULL;
     int tokensCount = 0;
     getAllTokens(sourcecode, &tokensArray, &tokensCount);
-    printf("Got tokens\n");
-
     for (int i = 0; i < 50; i++)
         printf("-");
     printf("\n");
@@ -153,10 +165,11 @@ int main(int argc, char** argv) {
     for (int i = 0; i < 50; i++)
         printf("-");
     printf("\n");
+    printf("Ended lexer output\n");
 
     Lexer lexer = initLexer(sourcecode);
     Parser parser = initParser(&lexer);
-    Program* program = parseProgram(&parser);
+    Program* program = parseProgram(&parser);  // the ast
     printf("\nParser output:\n");
     if(program == NULL){
         printf("Parse program function returned nothing - NULL\n");
@@ -168,6 +181,8 @@ int main(int argc, char** argv) {
             printf("\n");
         }
     }
-
+    printf("Evaluator output:\n");
+    evaluate(program);
+    printf("Evaluator output ends\n");
     return 0;
 }

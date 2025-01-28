@@ -8,6 +8,7 @@
     typedef enum DataType {
         integer,
         floating,
+        string,
         DataTypeCount
     } DataType;
 
@@ -20,6 +21,7 @@
         
         INTEGER_LITERAL,
         FLOAT_LITERAL,
+        STRING_LITERAL,
         
         ASSIGNMENT_OPERATOR,
         PLUS_OPERATOR,
@@ -39,6 +41,8 @@
         
         SEMICOLON,
         COMMA,
+        DOUBLE_QUOTES,
+        SINGLE_QUOTES,
         
         LEFT_PARENTHESIS,
         RIGHT_PARENTHESIS,
@@ -46,6 +50,8 @@
         RIGHT_CURLY_BRACES,
         LEFT_SQUARE_BRACKET,
         RIGHT_SQUARE_BRACKET,
+
+        BUILT_IN_FUNCTION,
         
         ILLEGAL,
         ENDOFFILE,
@@ -55,13 +61,15 @@
     typedef enum Keywords {
         let,
         fn,
+        print,
         Kreturn,
         Kif,
         Kelse,
         Ktrue,
         Kfalse,
         Kint,
-        Kbool,
+        Kfloat,
+        Kstring,
         Keywords_Count
     } Keywords;
 

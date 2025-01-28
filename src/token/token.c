@@ -29,6 +29,7 @@ char* getTokenTypeName(Token token){
         case KEYWORDS : return "KEYWORDS"; 
         case INTEGER_LITERAL : return "INTEGER_LITERAL";
         case FLOAT_LITERAL : return "FLOAT_LITERAL";
+        case STRING_LITERAL : return "STRING_LITERAL";
         case ASSIGNMENT_OPERATOR : return "ASSIGNMENT_OPERATOR"; 
         case PLUS_OPERATOR : return "PLUS_OPERATOR"; 
         case MINUS_OPERATOR : return "MINUS_OPERATOR"; 
@@ -44,6 +45,8 @@ char* getTokenTypeName(Token token){
         case SEMICOLON : return "SEMICOLON"; 
         case COMMA : return "COMMA"; 
         case BANG : return "BANG"; 
+        case DOUBLE_QUOTES : return "DOUBLE_QUOTES";
+        case SINGLE_QUOTES : return "SINGLE_QUOTES";
         case INCREMENT_OPERATOR: return "INCREMENT_OPERATOR";
         case DECREMENT_OPERATOR: return "DECREMENT_OPERATOR";
         case LEFT_PARENTHESIS : return "LEFT_PARENTHESIS"; 
@@ -53,6 +56,7 @@ char* getTokenTypeName(Token token){
         case LEFT_SQUARE_BRACKET : return "LEFT_SQUARE_BRACKET"; 
         case RIGHT_SQUARE_BRACKET : return "RIGHT_SQUARE_BRACKET";
         case COLON : return "COLON";
+        case BUILT_IN_FUNCTION : return "BUILT_IN_FUNCTION";
         case ILLEGAL : return "ILLEGAL";
         case Data_Type : return "DATA_TYPE";
         case ENDOFFILE : return "ENDOFFILE"; 
@@ -73,6 +77,13 @@ int isDataType(char* string) {
         if (strcmp(string, getDataTypeEnumName(i)) == 0){
             return 1;
         }
+    }
+    return 0;
+}
+
+int isBuiltInFunction(char* string){
+    if(strcmp(string, "print") == 0){
+        return 1;
     }
     return 0;
 }

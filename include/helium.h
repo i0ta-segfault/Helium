@@ -2,4 +2,5 @@
     #define _HELIUM_H_
     #include "lexer.h"
     #include "parser.h"
+    #include "evaluator.h"
 #endif

@@ -7,7 +7,8 @@ SRC_FILES = $(SRC_DIR)/main.c \
             $(SRC_DIR)/parser/parser.c \
             $(SRC_DIR)/token/token.c \
             $(SRC_DIR)/ast/ast.c \
-            $(SRC_DIR)/evaluator/evaluator.c
+            $(SRC_DIR)/evaluator/evaluator.c \
+            $(SRC_DIR)/utils/hashmap.c
 TARGET = bin/main
 SOURCE_CODE = main.he
 
