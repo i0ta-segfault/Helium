@@ -440,14 +440,14 @@ PrintStatement* parse_print_statement(Parser* parser){
             free(newPrintStmt);
             PrintStatement* temp = printStmt;
             while (temp) {
-                PrintStatement* next = temp->right;
+                PrintStatement* next = (PrintStatement*)temp->right;
                 free(temp);
                 temp = next;
             }
             return NULL;
         }
 
-        currentPrintStmt->right = newPrintStmt;
+        currentPrintStmt->right = (Expression*)newPrintStmt;
         currentPrintStmt = newPrintStmt;
     }
 

@@ -185,7 +185,7 @@ void evaluate(Program* program) {
     for (int i = 0; i < program->stmtsCount; i++) {
         switch (program->stmts[i]->stmt_type) {
             case STMT_LET: {
-                LetStatement* stmt = program->stmts[i];
+                LetStatement* stmt = (LetStatement*)program->stmts[i];
                 if (stmt->value != NULL && stmt->value->expr_type == EXPR_INFIX) { // let x : int = 10 + 5;
                     InfixExpression* infixExpr = (InfixExpression*)stmt->value;
                     double result = evaluate_infix_expression(infixExpr, map);
@@ -257,7 +257,7 @@ void evaluate(Program* program) {
             }
             case STMT_ASSIGNMENT: {
                 // printf("Assignment statement encountered\n");
-                AssignmentStatement* stmt = program->stmts[i];
+                AssignmentStatement* stmt = (AssignmentStatement*)program->stmts[i];
                 EntryMetaData metadata = getFromHashMap(map, stmt->identifier_token.literal);
                 if (metadata.data_type == NULL || metadata.value == NULL) {  // variable has not been initialized yet
                     printf("Error at [%d:%d]: Variable %s not found or uninitialized\n", 
@@ -312,7 +312,7 @@ void evaluate(Program* program) {
                 break;
             }
             case STMT_PRINT: {
-                PrintStatement* stmt = program->stmts[i];
+                PrintStatement* stmt = (PrintStatement*)program->stmts[i];
                 PrintStatement* currentStmt = stmt;
                 while (currentStmt != NULL) {
                     if (currentStmt->left != NULL) {
