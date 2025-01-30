@@ -1,2 +1,6 @@
-let a:int = 5;
+let a:int = 10;
+let b:int;
+b = 10;
+a = a + b;
+print("A ");
 print(a);

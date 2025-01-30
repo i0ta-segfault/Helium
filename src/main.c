@@ -1,6 +1,11 @@
 #include "helium.h"
 
 void print_expression(Expression* expr) {
+    if (expr == NULL) {
+        printf("NULL Expression\n");
+        return;
+    }
+
     switch (expr->expr_type) {
         case EXPR_IDENTIFIER: {
             IdentifierExpression* idExpr = (IdentifierExpression*)expr;
@@ -44,7 +49,7 @@ void print_expression(Expression* expr) {
             printf("Postfix Expression: ");
             printf("( ");
             print_expression(postfixExpr->left);
-            printf(")%s",postfixExpr->postfix_operator_token.literal);
+            printf(")%s", postfixExpr->postfix_operator_token.literal);
             break;
         }
         default:
@@ -103,11 +108,26 @@ void print_statement(Statement* stmt) {
         case STMT_PRINT: {
             PrintStatement* printStmt = (PrintStatement*)stmt;
             printf("Print Statement: (\n");
-            for (int i = 0; i < printStmt->exprCount; i++) {
-                printf("\t");
-                print_expression(printStmt->expressions[i]);
+            // Print the leftmost expression
+            if (printStmt->left != NULL) {
+                print_expression(printStmt->left);
             }
-            printf(")\n");
+            else {
+                printf("Left expression is NULL\n");
+            }
+            // Traverse the linked list of print statements (right chain)
+            PrintStatement* currentPrintStmt = (PrintStatement*)printStmt->right;
+            while (currentPrintStmt != NULL) {
+                printf(" -> ");  // Print the chain arrow (for clarity in output)
+                if (currentPrintStmt->left != NULL) {
+                    print_expression(currentPrintStmt->left);
+                }
+                else {
+                    printf("Left expression is NULL\n");
+                }
+                currentPrintStmt = (PrintStatement*)currentPrintStmt->right;
+            }
+            printf("\n)\n");
             break;
         }
         default:
@@ -181,8 +201,10 @@ int main(int argc, char** argv) {
             printf("\n");
         }
     }
-    printf("Evaluator output:\n");
+    // printf("Evaluator output:\n");
     evaluate(program);
-    printf("Evaluator output ends\n");
+    printf("\n");
+    // printf("Evaluator output ends\n");
+
     return 0;
 }

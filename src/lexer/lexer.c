@@ -137,6 +137,11 @@ Token nextToken(Lexer* lexer){
                 token.type = DECREMENT_OPERATOR;
                 token.literal = strdup("--");
             }
+            else if(peekChar(lexer) == '>'){
+                readCharacter(lexer);
+                token.type = ARROW_OPERATOR;
+                token.literal = strdup("->");
+            }
             else{
                 token.type = MINUS_OPERATOR;
                 token.literal = strdup("-");
@@ -145,6 +150,10 @@ Token nextToken(Lexer* lexer){
         case '*' : 
             token.type = ASTERISK;
             token.literal = strdup("*");
+            break;
+        case '%' : 
+            token.type = MODULUS_OPERATOR;
+            token.literal = strdup("%");
             break;
         case '/' :
             if(peekChar(lexer) == '/'){

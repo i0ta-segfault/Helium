@@ -109,10 +109,10 @@
         int elseBlockCount;
     } ElseStatement;
 
-    typedef struct PrintStatement {
+    typedef struct PrintStatement { // print(a -> "A")
         Statement stmt;
-        Expression** expressions;
-        int exprCount;
+        Expression* left;
+        Expression* right;
     } PrintStatement;
 
     typedef struct Program {

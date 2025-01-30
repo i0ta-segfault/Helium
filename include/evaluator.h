@@ -7,6 +7,8 @@
     #include "parser.h"
     #include "hashmap.h"
 
+    char* evaluate_escape_sequences(char*);
+    float evaluate_infix_expression(InfixExpression*, HashMap*);
     void evaluate(Program*);
 
 #endif

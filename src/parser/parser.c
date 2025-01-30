@@ -20,16 +20,19 @@ void parser_throw_error(Parser* parser, const char* expected){
 }
 
 int is_infix_operator(Token token) {
-    //    +, -, *, /, >=, <=, <, >, !=, ==
+    //    +, -, *, /, %, >=, <=, <, >, !=, ==, ->
     return token.type == PLUS_OPERATOR || token.type == MINUS_OPERATOR ||
-           token.type == ASTERISK || token.type == FORWARD_SLASH ||
+           token.type == ASTERISK || token.type == FORWARD_SLASH || token.type == MODULUS_OPERATOR ||
            token.type == GREATER_THAN || token.type == LESSER_THAN ||
            token.type == GREATER_EQUAL || token.type == LESSER_EQUAL ||
-           token.type == EQUALITY_OPERATOR || token.type == NOT_EQUAL_OPERATOR;
+           token.type == EQUALITY_OPERATOR || token.type == NOT_EQUAL_OPERATOR ||
+           token.type == ARROW_OPERATOR;
 }
 
 int get_precedence(Token token) {
     switch (token.type) {
+        case ARROW_OPERATOR:
+            return 30;
         case PLUS_OPERATOR:
         case MINUS_OPERATOR:
             return 10;
@@ -400,12 +403,13 @@ IfStatement* parse_if_statement(Parser* parser) {
     return ifStmt;
 }
 
-PrintStatement* parse_print_statement(Parser* parser) {
+PrintStatement* parse_print_statement(Parser* parser){
+    // print(">>> " -> a -> " a");
+    // parser needs to handle stuff like this
     PrintStatement* printStmt = (PrintStatement*)malloc(sizeof(PrintStatement));
     printStmt->stmt.stmt_type = STMT_PRINT;
-    printStmt->expressions = NULL;
-    printStmt->exprCount = 0;
-
+    printStmt->left = NULL;
+    printStmt->right = NULL;
     Token printToken = parser->currentToken;
     advance_token_Parser(parser);
 
@@ -416,54 +420,54 @@ PrintStatement* parse_print_statement(Parser* parser) {
     }
     advance_token_Parser(parser);
 
-    while (parser->currentToken.type != RIGHT_PARENTHESIS &&
-           parser->currentToken.type != ENDOFFILE) {
-        Expression* expr = parse_expression(parser);
-        if (expr == NULL) {
-            free(printStmt->expressions);
-            free(printStmt);
-            return NULL;
-        }
-
-        // Increase expression count and reallocate memory
-        printStmt->exprCount++;
-        printStmt->expressions = realloc(printStmt->expressions, 
-                                         printStmt->exprCount * sizeof(Expression*));
-        if (!printStmt->expressions) {
-            // Check for realloc failure
-            perror("Memory reallocation failed for expressions");
-            free(printStmt);
-            return NULL;
-        }
-
-        // Add the parsed expression to the array
-        printStmt->expressions[printStmt->exprCount - 1] = expr;
-
-        if (parser->currentToken.type == COMMA) {
-            advance_token_Parser(parser);
-        } else {
-            break;  // Break if no more expressions or no ',' operator
-        }
+    printStmt->left = parse_expression(parser);
+    if (printStmt->left == NULL) {
+        free(printStmt);
+        return NULL;
     }
 
-    // Ensure the closing parenthesis
+    // handle multiple ->s
+    PrintStatement* currentPrintStmt = printStmt;
+    while (parser->currentToken.type == ARROW_OPERATOR) {
+        advance_token_Parser(parser);
+
+        PrintStatement* newPrintStmt = (PrintStatement*)malloc(sizeof(PrintStatement));
+        newPrintStmt->stmt.stmt_type = STMT_PRINT;
+        newPrintStmt->left = currentPrintStmt->right;
+        newPrintStmt->right = parse_expression(parser);
+
+        if (newPrintStmt->right == NULL) {
+            free(newPrintStmt);
+            PrintStatement* temp = printStmt;
+            while (temp) {
+                PrintStatement* next = temp->right;
+                free(temp);
+                temp = next;
+            }
+            return NULL;
+        }
+
+        currentPrintStmt->right = newPrintStmt;
+        currentPrintStmt = newPrintStmt;
+    }
+
     if (parser->currentToken.type != RIGHT_PARENTHESIS) {
         parser_throw_error(parser, "Expected ')' after 'print' arguments.");
-        free(printStmt->expressions);  // Free allocated expressions
+        free(printStmt->left);
+        free(printStmt->right);
         free(printStmt);
         return NULL;
     }
     advance_token_Parser(parser);
 
-    // Expecting a semicolon after print statement
     if (parser->currentToken.type != SEMICOLON) {
         parser_throw_error(parser, "Expected ';' after 'print' statement.");
-        free(printStmt->expressions);  // Free allocated expressions
+        free(printStmt->left);
+        free(printStmt->right);
         free(printStmt);
         return NULL;
     }
     advance_token_Parser(parser);
-
     return printStmt;
 }
 

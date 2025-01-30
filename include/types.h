@@ -39,6 +39,8 @@
         INCREMENT_OPERATOR,
         DECREMENT_OPERATOR,
         
+        ARROW_OPERATOR,
+
         SEMICOLON,
         COMMA,
         DOUBLE_QUOTES,

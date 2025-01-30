@@ -42,6 +42,7 @@ char* getTokenTypeName(Token token){
         case ASTERISK : return "ASTERISK"; 
         case FORWARD_SLASH : return "FORWARD_SLASH"; 
         case MODULUS_OPERATOR : return "MODULUS_OPERATOR"; 
+        case ARROW_OPERATOR : return "ARROW_OPERATOR";
         case SEMICOLON : return "SEMICOLON"; 
         case COMMA : return "COMMA"; 
         case BANG : return "BANG"; 

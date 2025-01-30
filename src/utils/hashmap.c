@@ -5,6 +5,7 @@ HashMap* initHashMap(size_t capacity) {
     map->entries = calloc(capacity, sizeof(HashMapEntry*));
     map->capacity = capacity;
     map->size = 0;
+    // printf("Hashmap created\n");
     return map;
 }
 
@@ -38,40 +39,55 @@ void resizeHashMap(HashMap* map){
 }
 
 void insertToHashMap(HashMap* map, const char* key, const char* data_type, void* value) {
-    if((double)map->size / map->capacity > HASHMAP_LOAD_FACTOR)
+    // printf("Insert to hash map called\n");
+    if ((double)map->size / map->capacity > HASHMAP_LOAD_FACTOR)
         resizeHashMap(map);
 
     size_t index = hashFunction(key, map->capacity);
     HashMapEntry* entry = map->entries[index];
     while (entry) {
-        if (strcmp(entry->key, key) == 0) { // key already exists in the map so just return
-            free(entry->meta_data.data_type);
-            entry->meta_data.data_type = strdup(data_type);
+        if (strcmp(entry->key, key) == 0) { // key already exists in the map
+            if (entry->meta_data.data_type != data_type) {
+                free(entry->meta_data.data_type);
+                entry->meta_data.data_type = strdup(data_type);
+            }
+            if (entry->meta_data.value) free(entry->meta_data.value);
             entry->meta_data.value = value;
+            if(strcmp("int", data_type) == 0)
+                printf("Inserted value : %d and data type : %s with key : %s\n", *((int*)value), entry->meta_data.data_type, entry->key);
+            else if(strcmp("float", data_type) == 0)
+                printf("Inserted value : %f and data type : %s with key : %s\n", *((float*)value), entry->meta_data.data_type, entry->key);
             return;
         }
         entry = entry->next;
     }
+
     HashMapEntry* newEntry = malloc(sizeof(HashMapEntry));
     newEntry->key = strdup(key);
     newEntry->meta_data.data_type = strdup(data_type);
     newEntry->meta_data.value = value;
+    printf("New Data type : %s & Value : %d inserted\n", 
+        newEntry->meta_data.data_type, *((int*)newEntry->meta_data.value));
     newEntry->next = map->entries[index];
     map->entries[index] = newEntry;
     map->size++;
 }
 
 EntryMetaData getFromHashMap(HashMap* map, const char* key) {
+    // printf("Get hash map called\n");
+    printf("Key : %s\n", key);
     size_t index = hashFunction(key, map->capacity);
     HashMapEntry* entry = map->entries[index];
-    EntryMetaData returnmetadata = {
-        .data_type = 0,
-        .value = NULL
-    };
+    EntryMetaData returnmetadata = { .data_type = NULL, .value = NULL };
+
     while (entry) {
         if (strcmp(entry->key, key) == 0) {
             returnmetadata.data_type = entry->meta_data.data_type;
             returnmetadata.value = entry->meta_data.value;
+            if (returnmetadata.value != NULL) {
+                printf("Data type : %s & Value : %f retrieved\n", 
+                    returnmetadata.data_type, *((float*)returnmetadata.value));
+            }
             return returnmetadata;
         }
         entry = entry->next;
