@@ -15,7 +15,7 @@ SOURCE_CODE = main.he
 all: $(TARGET)
 
 $(TARGET): $(SRC_FILES)
-	gcc -I./include -g -o $(TARGET) $(SRC_FILES)
+	gcc -I./include -g -o $(TARGET) $(SRC_FILES) -lm
 
 run: $(TARGET)
 	cd bin && ./main $(SOURCE_CODE)

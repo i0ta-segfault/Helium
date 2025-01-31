@@ -110,6 +110,9 @@ float evaluate_infix_expression(InfixExpression* infixExpr, HashMap* map) {
             right_operand_result = evaluate_infix_expression(right_operand_infix, map);
             break;
         }
+        case EXPR_PREFIX: {
+            break;
+        }
         // case EXPR_STRING: {
         //     StringLiteral* str = (StringLiteral*)right_operand;
         //     char* stringValue = str->string_token.literal;
@@ -142,7 +145,7 @@ float evaluate_infix_expression(InfixExpression* infixExpr, HashMap* map) {
             break; 
         case MODULUS_OPERATOR:
             if(right_operand_result != 0)
-                total_result = (int)left_operand_result % (int)right_operand_result;
+                total_result = fmod(left_operand_result, right_operand_result);
             else{
                 printf("Division by 0 not permitted\n");
             }
@@ -199,7 +202,12 @@ void evaluate(Program* program) {
                         float* initial_value = malloc(sizeof(float));
                         *initial_value = (float)result;
                         insertToHashMap(map, stmt->identifier.identifier_token.literal, "float", initial_value);
-                    } 
+                    }
+                    else if (strcmp(stmt->data_type.literal, "string") == 0) {
+                        StringLiteral* value = (StringLiteral*)stmt->value;
+                        char* initial_value = strdup(value->string_token.literal);
+                        insertToHashMap(map, stmt->identifier.identifier_token.literal, "string", initial_value);
+                    }
                     else {
                         printf("Error: Unsupported data type '%s' at [%d:%d]\n", stmt->data_type.literal, 
                                 stmt->identifier.identifier_token.line_number, 

@@ -195,6 +195,7 @@ int main(int argc, char** argv) {
         printf("Parse program function returned nothing - NULL\n");
     }
     else{
+        printf("Program statements' count %d\n",program->stmtsCount);
         for (int i = 0; i < program->stmtsCount; i++) {
             printf("Statement %d:\n", i + 1);
             print_statement(program->stmts[i]);

@@ -38,6 +38,7 @@ int get_precedence(Token token) {
             return 10;
         case ASTERISK:
         case FORWARD_SLASH:
+        case MODULUS_OPERATOR:
             return 20;
         case GREATER_THAN:
         case LESSER_THAN:
@@ -210,9 +211,13 @@ AssignmentStatement* parse_assignment_statement(Parser* parser) {
 }
 
 LetStatement* parse_let_statement(Parser* parser) {   // handle stuff like let result:int = 10; let ans:bool;
-    Token letToken = parser->currentToken;
+    Token letToken = {.literal = "let", .type = KEYWORDS, 
+                      .line_number = parser->currentToken.line_number,
+                      .column_number = parser->currentToken.column_number};
     Token data_type;
     advance_token_Parser(parser);
+
+    printf("Parsing let\n");
 
     if (parser->currentToken.type != IDENTIFIER) {
         parser_throw_error(parser, "identifier after 'let'");
@@ -232,12 +237,16 @@ LetStatement* parse_let_statement(Parser* parser) {   // handle stuff like let r
         parser_throw_error(parser, "expected data type after identifier");
         return NULL;
     }
+    if(parser->currentToken.type == COLON){
+        printf("Colon was encountered, %s\n", parser->currentToken.literal);
+    } 
     advance_token_Parser(parser);
 
     if(parser->currentToken.type != Data_Type){
         parser_throw_error(parser, "invalid data type");
         return NULL;
-    } else {
+    } 
+    else {
         int dataTypeEnum = getDataTypeFromEnum(parser->currentToken.literal);
         if (dataTypeEnum == -1) {
             parser_throw_error(parser, "unrecognized data type");
@@ -245,6 +254,7 @@ LetStatement* parse_let_statement(Parser* parser) {   // handle stuff like let r
         }
         data_type.type = Data_Type;
         data_type.literal = getDataTypeEnumName(dataTypeEnum);
+        printf("Program flow reached here, checking the data type, it was : %s\n", data_type.literal);
     }
     advance_token_Parser(parser);
 
@@ -256,18 +266,28 @@ LetStatement* parse_let_statement(Parser* parser) {   // handle stuff like let r
             return NULL;
         }
 
+        printf("Program flow reached here, checking the assignment operator\n");
+
         LetStatement* letStmt = (LetStatement*)malloc(sizeof(LetStatement));
         letStmt->stmt = (Statement) { .node = { .type = NODE_STMT }, .stmt_type = STMT_LET };
         letStmt->token = letToken;
         letStmt->data_type = data_type;
         letStmt->identifier = identifier;
         letStmt->value = value;
+        if(letStmt == NULL) printf("Let stmt is null\n");
+        else{
+            printf("Let stmt was not null\n");
+            IntegerLiteral* printstuff = (IntegerLiteral*)letStmt->value;
+            printf("The value assigned to the let stmt identifier %s is %s\n",letStmt->identifier.identifier_token.literal, printstuff->integer_token.literal);
+        }
 
         if(parser->currentToken.type != SEMICOLON){
             parser_throw_error(parser, "expected semicolon ';' after statement");
             return NULL;
         }
         advance_token_Parser(parser);
+
+        printf("Program flow reached here ---- let statement parsing end\n");
         return letStmt;
     } 
     else {   // handle a simple declaration (let result:int;)
@@ -484,19 +504,28 @@ Statement* parse_statement(Parser* parser) {
     Statement* stmt = NULL;
     switch (parser->currentToken.type) {
         case IDENTIFIER:
+            printf("In parse_statement, identifier switch case\n");
             if (parser->nextToken.type == ASSIGNMENT_OPERATOR)
                 stmt = (Statement*)parse_assignment_statement(parser);
             else
                 stmt = (Statement*)parse_expression_statement(parser);
             break;
         case KEYWORDS:
-            if (strcmp(parser->currentToken.literal, "let") == 0)
+            if (strcmp(parser->currentToken.literal, "let") == 0){
+                printf("In parse_statement, let keyword's switch case\n");
                 stmt = (Statement*)parse_let_statement(parser);
-            else if (strcmp(parser->currentToken.literal, "return") == 0)
+                if(stmt == NULL) printf("NULL let stmt returned\n");
+            }
+            else if (strcmp(parser->currentToken.literal, "return") == 0){
+                printf("In parse_statement, return keyword's switch case\n");
                 stmt = (Statement*)parse_return_statement(parser);
-            else if (strcmp(parser->currentToken.literal, "if") == 0)
+            }
+            else if (strcmp(parser->currentToken.literal, "if") == 0){
+                printf("In parse_statement, if keyword's switch case\n");
                 stmt = (Statement*)parse_if_statement(parser);
+            }
         case BUILT_IN_FUNCTION:
+            printf("In parse_statement, built in function switch case\n");
             if (strcmp(parser->currentToken.literal, "print") == 0)
                 stmt = (Statement*)parse_print_statement(parser);
             break;
@@ -526,15 +555,22 @@ Program* parseProgram(Parser* parser) {
     program->stmtsCount = 0;
 
     while (parser->currentToken.type != ENDOFFILE) {
+        printf("Token being parsed : %s and the next token : %s\n", parser->currentToken.literal, parser->nextToken.literal);
         Statement* stmt = parse_statement(parser);
         if (stmt != NULL) {
+            if(stmt->stmt_type == STMT_LET){
+                printf("Let statement returned to parse program in while loop\n");
+            }
             program->stmtsCount++;
+            printf("The program statement count after incrementing it : %d\n",program->stmtsCount);
             program->stmts = (Statement**)realloc(program->stmts, program->stmtsCount * sizeof(Statement*));
             program->stmts[program->stmtsCount - 1] = stmt;
-        } 
-        else
+        }
+        else{
             synchronize(parser);
+        }
     }
+    printf("Program statements' count %d after parseProgram fn\n",program->stmtsCount);
     return program;
 }
 

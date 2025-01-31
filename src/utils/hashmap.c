@@ -57,6 +57,8 @@ void insertToHashMap(HashMap* map, const char* key, const char* data_type, void*
                 printf("Inserted value : %d and data type : %s with key : %s\n", *((int*)value), entry->meta_data.data_type, entry->key);
             else if(strcmp("float", data_type) == 0)
                 printf("Inserted value : %f and data type : %s with key : %s\n", *((float*)value), entry->meta_data.data_type, entry->key);
+            else if(strcmp("string", data_type) == 0)
+                printf("Inserted value : %s and data type : %s with key : %s\n", *((char*)value), entry->meta_data.data_type, entry->key);
             return;
         }
         entry = entry->next;

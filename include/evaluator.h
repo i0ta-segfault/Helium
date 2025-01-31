@@ -4,6 +4,7 @@
     #include <string.h>
     #include <stdio.h>
     #include <stdlib.h>
+    #include <math.h>
     #include "parser.h"
     #include "hashmap.h"
 
