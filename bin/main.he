@@ -1,7 +1,4 @@
 let a:int = 10;
-a = a + 10;
-let b:int = 5;
-if(a >= b){
-    a = a + b;
-}
-print(a);
+let b:int = 12;
+b = a + b; 
+print(a + b);
